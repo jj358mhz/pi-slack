@@ -34,32 +34,50 @@ function error() {
 # trap errors
 trap 'error ${LINENO} $?' ERR
 
+# Create a temporary directory
+temp_dir=$(mktemp -d)
+
+# Clone the GitHub repository into the temporary directory
+git clone --depth=1 "${REPO_URL}" "$temp_dir"
+
 make_venv() {
-  # build the python virtual environment
+  # Build the python virtual environment
   python -c 'import venv' > /dev/null 2>&1 || \
   apt-get update && apt-get install python3-venv -y || exit $?
-  cd "${SOFTWARE}/opt/uplynk/${SOFTWARE}" || exit $?
-  python3 -m venv . || exit $?
-  source bin/activate || exit $?
+
+  # Create the venv directory
+  mkdir -p "/opt/venvs/${SOFTWARE}"
+  cd "$temp_dir" || exit $?
+
+  python3 -m venv "/opt/venvs/${SOFTWARE}" || exit $?
+  source "/opt/venvs/${SOFTWARE}/bin/activate" || exit $?
   wget -qO- "${GET_PIP_URL}" | python3 || exit $?
+
+  # Install Python dependencies from requirements.txt
   pip install -r requirements.txt || exit $?
+
+  # Deactivate the virtual environment
   deactivate || exit $?
+
+  # Move back to the original directory
   cd - || exit
 }
 
 install_files() {
-  # Clone the GitHub repository
-  git clone --depth=1 "${REPO_URL}" .
-
   # Create necessary directories
-  mkdir -p "/usr/local/bin/${SOFTWARE}"
-  mkdir -p "/etc/${SOFTWARE}/${SOFTWARE}"
-  cd "${SOFTWARE}/opt/uplynk/${SOFTWARE}" || exit $?
+  mkdir -p "/usr/local/bin/${SOFTWARE}/" "/etc/${SOFTWARE}/${SOFTWARE}.ini/" "/etc/logrotate.d/${SOFTWARE}/" "/etc/systemd/system/${SOFTWARE}.service/"
+
+  # Copy files to their respective directories
+  cp -r "$temp_dir"/. "/etc/${SOFTWARE}/${SOFTWARE}.ini/"
+  cp -r "$temp_dir"/. "/etc/logrotate.d/${SOFTWARE}/"
+  cp -r "$temp_dir"/. "/etc/systemd/system/${SOFTWARE}.service/"
+  cp -r "$temp_dir"/alerts_slack.py "/usr/local/bin/${SOFTWARE}/"
+
+  # Ensure the copied files are owned by root
+  chown -R root:root "/usr/local/bin/${SOFTWARE}/" "/etc/${SOFTWARE}/" || exit $?
 
   # Remove unnecessary files, if any
-  rm -rf .git*
-
-  cd - || exit
+  rm -rf "$temp_dir"/.git*
 }
 
 make_venv
