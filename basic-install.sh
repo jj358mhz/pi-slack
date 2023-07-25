@@ -6,13 +6,22 @@
 # instead of continuing the installation with something broken
 set -e
 
+# Set these values so the installer can still run in color
+COL_NC='\e[0m' # No Color
+COL_LIGHT_GREEN='\e[1;32m'
+COL_LIGHT_RED='\e[1;31m'
+TICK="[${COL_LIGHT_GREEN}✓${COL_NC}]"
+CROSS="[${COL_LIGHT_RED}✗${COL_NC}]"
+INFO="[i]"
+
+
 # check if the script is running with super user privileges
 if [ "$EUID" -ne 0 ]; then
-  echo "This script requires super user privileges. Re-executing script with sudo."
+  printf "${CROSS}" "This script requires super user privileges. Re-executing script with sudo."
   sudo "$0" "$@"  # re-execute script with super user privileges
   exit  # exit the current instance of the script
 else
-  echo "Running script with super user privileges."
+  printf "${TICK}" "Running script with super user privileges."
 fi
 
 SCRIPT="alerts_slack.py"
@@ -27,7 +36,7 @@ REPO_URL='https://github.com/jj358mhz/pi-slack.git'
 
 # error handling function
 function error() {
-  echo "Error on line $1, exit code $2"
+  printf "${CROSS}" "Error on line $1, exit code $2"
   exit "$2"
 }
 
