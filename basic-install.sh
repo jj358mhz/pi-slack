@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1090
+
+# -e option instructs bash to immediately exit if any command [1] has a non-zero exit status
+# We do not want users to end up with a partially working install, so we exit the script
+# instead of continuing the installation with something broken
+set -e
 
 # check if the script is running with super user privileges
 if [ "$EUID" -ne 0 ]; then
@@ -19,6 +25,7 @@ SOFTWARE='pi-slack'
 SOFTWARE_DESC='Slack alert sender for Broadcastify feeds'
 USER=$(whoami)
 GET_PIP_URL='https://bootstrap.pypa.io/get-pip.py'
+REPO_URL='https://github.com/jj358mhz/pi-slack.git'
 
 # error handling function
 function error() {
@@ -33,7 +40,7 @@ make_venv() {
   # build the python virtual environment
   python -c 'import venv' > /dev/null 2>&1 || \
   apt-get update && apt-get install python3-venv -y || exit $?
-  cd "${SOFTWARE}"/opt/uplynk/"${SOFTWARE}"/ || exit $?
+  cd "${SOFTWARE}/opt/uplynk/${SOFTWARE}" || exit $?
   python3 -m venv . || exit $?
   source bin/activate || exit $?
   wget -qO- "${GET_PIP_URL}" | python3 || exit $?
@@ -42,39 +49,20 @@ make_venv() {
   cd - || exit
 }
 
-make_deb() {
-    # create control file
-    echo "Package: ${SOFTWARE}
-    Maintainer: Jeff Johnston <jj358mhz@gmail.com>
-    Homepage: ${CI_PROJECT_URL}
-    Architecture: amd64
-    Priority: extra
-    Description: ${SOFTWARE_DESC}
-    Packaged-on: ${PACKAGED_DATE}
-    Ci-Job-Url: ${CI_JOB_URL}
-    Version: ${VERSION}" | sed -r 's/^\s+//g' | tee ${SOFTWARE}/DEBIAN/control
+install_files() {
+  # Clone the GitHub repository
+  git clone --depth=1 "${REPO_URL}" .
 
-    # set exec on pre/post install scripts
-    chmod 0755 ${SOFTWARE}/DEBIAN/p*
+  # Create necessary directories
+  mkdir -p "/usr/local/bin/${SOFTWARE}"
+  mkdir -p "/etc/${SOFTWARE}/${SOFTWARE}"
+  cd "${SOFTWARE}/opt/uplynk/${SOFTWARE}" || exit $?
 
-    # set mode 644 for all files with mode 664
-    find ${SOFTWARE} -type f ! -executable -exec chmod 644 {} \;
+  # Remove unnecessary files, if any
+  rm -rf .git*
 
-    # if a directory is executable but not 755, chmod it.
-    find ${SOFTWARE} -type d -executable ! -perm 755 -exec chmod 755 {} \;
-
-    # chown package contents to root.root
-    chown -R root.root ${SOFTWARE}
-
-    # build debian package
-    dpkg-deb --build ${SOFTWARE} ./build
-
-    # make deb readable, just in case.
-    find . -type f -name '*deb' -exec chmod 644 {} \;
-
-    # make deb owned by non-root, just in case.
-    find . -type f -name '*deb' -exec chown "${USER}"."${USER}" {} \;
+  cd - || exit
 }
 
 make_venv
-make_deb
+install_files
