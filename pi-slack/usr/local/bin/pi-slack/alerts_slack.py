@@ -29,6 +29,7 @@ The module contains the following functions:
 """
 
 # *************** DO NOT ALTER BELOW ***************
+
 _LOGGER = logging.getLogger(__name__)
 
 # The Broadcastify API endpoint URL
@@ -45,7 +46,9 @@ FEED_ID = (config['CREDENTIALS']['FEED_ID'])
 USERNAME = (config['CREDENTIALS']['USERNAME'])
 PASSWORD = (config['CREDENTIALS']['PASSWORD'])
 WEBHOOK_URL = (config['ENDPOINT']['WEBHOOK_URL'])
+
 # *************** DO NOT ALTER ABOVE ***************
+
 
 # This threshold amount is the number of listeners that need to be exceeded before Slack alerts are sent out
 ALERT_THRESHOLD = 30  # ENTER YOUR DESIRED ALERT LISTENER THRESHOLD HERE
@@ -131,7 +134,7 @@ if __name__ == '__main__':
     logging.basicConfig(
         filename=f'{LOGFILE_PATH}pi-slack.log',
         format='%(asctime)s %(levelname)-5s %(message)s',
-        level=logging.DEBUG,
+        level=logging.INFO,
         datefmt='%Y-%m-%d %H:%M:%S',
     )
     main()
