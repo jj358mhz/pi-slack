@@ -89,7 +89,7 @@ install_files() {
     else
       echo "Skipping .ini file copy."
       rm -r "$temp_dir"  # Remove the temporary directory
-      return 0  # Return from the function to skip the remaining code
+      exit 0
     fi
   fi
 
