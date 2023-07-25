@@ -99,6 +99,9 @@ install_files() {
 make_venv
 install_files
 
+# Enable the service
+systemctl enable ${SOFTWARE}.service
+
 echo " "
 echo " "
 echo "Service files installed and permissions set & please be sure to \
