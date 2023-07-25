@@ -19,8 +19,6 @@ SCRIPT="alerts_slack.py"
 CI_PROJECT_URL="https://github.com/jj358mhz/pi-slack"
 APP_PATH=$(find . -type f -name ${SCRIPT} ! -path '.git*')
 PACKAGED_DATE=$(date +"%F %T %Z")
-RELEASE=$(grep -P 'VERSION.*\d+' "${APP_PATH}" | grep --color=never -Po '\d+\.\d+\.\d+')
-VERSION=${RELEASE}
 SOFTWARE='pi-slack'
 SOFTWARE_DESC='Slack alert sender for Broadcastify feeds'
 USER=$(whoami)
