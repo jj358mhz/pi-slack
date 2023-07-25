@@ -129,7 +129,7 @@ def main():
 
 if __name__ == '__main__':
     logging.basicConfig(
-        filename='/var/EdgeCast/logs/status2fox/status2fox.log',
+        filename=f'{LOGFILE_PATH}pi-slack.log',
         format='%(asctime)s %(levelname)-5s %(message)s',
         level=logging.DEBUG,
         datefmt='%Y-%m-%d %H:%M:%S',
