@@ -17,10 +17,12 @@ INFO="[i]"
 
 # check if the script is running with super user privileges
 if [ "$EUID" -ne 0 ]; then
+  # shellcheck disable=SC2059
   printf "${CROSS}" "This script requires super user privileges. Re-executing script with sudo."
   sudo "$0" "$@"  # re-execute script with super user privileges
   exit  # exit the current instance of the script
 else
+  # shellcheck disable=SC2059
   printf "${TICK}" "Running script with super user privileges."
 fi
 
@@ -45,6 +47,7 @@ trap 'error ${LINENO} $?' ERR
 
 # Create a temporary directory
 temp_dir=$(mktemp -d)
+echo "Temporary directory created: $temp_dir"
 
 # Clone the GitHub repository into the temporary directory
 git clone --depth=1 "${REPO_URL}" "$temp_dir"
@@ -56,6 +59,7 @@ make_venv() {
 
   # Create the venv directory
   mkdir -p "/opt/venvs/${SOFTWARE}"
+
   cd "$temp_dir" || exit $?
 
   python3 -m venv "/opt/venvs/${SOFTWARE}" || exit $?
@@ -63,31 +67,39 @@ make_venv() {
   wget -qO- "${GET_PIP_URL}" | python3 || exit $?
 
   # Install Python dependencies from requirements.txt
-  pip install -r requirements.txt || exit $?
+  pip install -r "requirements.txt" || exit $?
 
   # Deactivate the virtual environment
   deactivate || exit $?
-
-  # Move back to the original directory
-  cd - || exit
 }
 
 install_files() {
   # Create necessary directories
-  mkdir -p "/usr/local/bin/${SOFTWARE}/" "/etc/${SOFTWARE}/${SOFTWARE}.ini/" "/etc/logrotate.d/${SOFTWARE}/" "/etc/systemd/system/${SOFTWARE}.service/"
+  mkdir -p "/usr/local/bin/${SOFTWARE}/" "/etc/${SOFTWARE}/"
+
+  # Remove unnecessary files, if any
+  rm -rf "$temp_dir/.git*"
 
   # Copy files to their respective directories
-  cp -r "$temp_dir"/. "/etc/${SOFTWARE}/${SOFTWARE}.ini/"
-  cp -r "$temp_dir"/. "/etc/logrotate.d/${SOFTWARE}/"
-  cp -r "$temp_dir"/. "/etc/systemd/system/${SOFTWARE}.service/"
-  cp -r "$temp_dir"/alerts_slack.py "/usr/local/bin/${SOFTWARE}/"
+  cp "$temp_dir/${SOFTWARE}/usr/local/bin/${SOFTWARE}/alerts_slack.py" "/usr/local/bin/${SOFTWARE}/"
+  cp "$temp_dir/${SOFTWARE}/etc/${SOFTWARE}/${SOFTWARE}.ini" "/etc/${SOFTWARE}"
+  cp "$temp_dir/${SOFTWARE}/etc/logrotate.d/$SOFTWARE" "/etc/logrotate.d"
+  cp "$temp_dir/${SOFTWARE}/etc/systemd/system/${SOFTWARE}.service" "/etc/systemd/system/"
+
+  # Make alerts_slack.py executable
+  chmod +x "/usr/local/bin/${SOFTWARE}/alerts_slack.py"
 
   # Ensure the copied files are owned by root
   chown -R root:root "/usr/local/bin/${SOFTWARE}/" "/etc/${SOFTWARE}/" || exit $?
 
-  # Remove unnecessary files, if any
-  rm -rf "$temp_dir"/.git*
+  # Remove the temporary directory
+  rm -r "$temp_dir"
 }
 
 make_venv
 install_files
+
+echo " "
+echo " "
+echo "Service files installed and permissions set & please be sure to \
+update your /etc/${SOFTWARE}/${SOFTWARE}.ini file with your feed credentials"
