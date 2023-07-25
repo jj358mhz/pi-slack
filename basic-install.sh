@@ -12,8 +12,6 @@ COL_LIGHT_GREEN='\e[1;32m'
 COL_LIGHT_RED='\e[1;31m'
 TICK="[${COL_LIGHT_GREEN}✓${COL_NC}]"
 CROSS="[${COL_LIGHT_RED}✗${COL_NC}]"
-INFO="[i]"
-
 
 # check if the script is running with super user privileges
 if [ "$EUID" -ne 0 ]; then
@@ -26,18 +24,13 @@ else
   printf "${TICK}" "Running script with super user privileges."
 fi
 
-SCRIPT="alerts_slack.py"
-CI_PROJECT_URL="https://github.com/jj358mhz/pi-slack"
-APP_PATH=$(find . -type f -name ${SCRIPT} ! -path '.git*')
-PACKAGED_DATE=$(date +"%F %T %Z")
 SOFTWARE='pi-slack'
-SOFTWARE_DESC='Slack alert sender for Broadcastify feeds'
-USER=$(whoami)
 GET_PIP_URL='https://bootstrap.pypa.io/get-pip.py'
 REPO_URL='https://github.com/jj358mhz/pi-slack.git'
 
 # error handling function
 function error() {
+  # shellcheck disable=SC2059
   printf "${CROSS}" "Error on line $1, exit code $2"
   exit "$2"
 }
