@@ -82,12 +82,53 @@ install_files() {
 
   # Copy files to their respective directories
   cp "$temp_dir/${SOFTWARE}/usr/local/bin/${SOFTWARE}/alerts_slack.py" "/usr/local/bin/${SOFTWARE}/"
-  cp "$temp_dir/${SOFTWARE}/etc/${SOFTWARE}/${SOFTWARE}.ini" "/etc/${SOFTWARE}"
   cp "$temp_dir/${SOFTWARE}/etc/logrotate.d/$SOFTWARE" "/etc/logrotate.d"
   cp "$temp_dir/${SOFTWARE}/etc/systemd/system/${SOFTWARE}.service" "/etc/systemd/system/"
 
   # Make alerts_slack.py executable
   chmod +x "/usr/local/bin/${SOFTWARE}/alerts_slack.py"
+
+    # Check if the .ini file already exists
+  if [ -f "/etc/${SOFTWARE}/${SOFTWARE}.ini" ]; then
+    read -r -p "An .ini file already exists. Do you want to overwrite it? (y/n) " response
+    if [[ $response =~ ^[Yy]$ ]]; then
+      echo "Overwriting existing .ini file..."
+    else
+      echo "Skipping .ini file copy."
+      rm -r "$temp_dir"  # Remove the temporary directory
+      return 0  # Return from the function to skip the remaining code
+    fi
+  fi
+
+  # Prompt the user for their credentials
+  echo "Please enter your feed credentials:"
+  read -r -p "FEED_ID: " feed_id
+  read -r -p "USERNAME: " username
+  read -r -s -p "PASSWORD: " password
+  echo
+  read -r -p "WEBHOOK_URL: " webhook_url
+
+# Generate the content of the .ini file with user credentials
+ini_content=$(cat <<EOF
+[CREDENTIALS]
+# ENTER YOUR BROADCASTIFY FEED ID
+FEED_ID = ${feed_id}
+# ENTER YOUR BROADCASTIFY USERNAME
+USERNAME = ${username}
+# ENTER YOUR BROADCASTIFY PASSWORD
+PASSWORD = ${password}
+
+[ENDPOINT]
+# ENTER YOUR SLACK WEBHOOK URL
+WEBHOOK_URL = ${webhook_url}
+EOF
+)
+
+  # Write the generated .ini content to the actual .ini file
+  echo "$ini_content" > "/etc/${SOFTWARE}/${SOFTWARE}.ini"
+
+  # Copy the .ini file to its destination
+  cp "$temp_dir/${SOFTWARE}/etc/logrotate.d/${SOFTWARE}" "/etc/logrotate.d"
 
   # Ensure the copied files are owned by root
   chown -R root:root "/usr/local/bin/${SOFTWARE}/" "/etc/${SOFTWARE}/" || exit $?
