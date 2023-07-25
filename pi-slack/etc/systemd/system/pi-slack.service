@@ -1,0 +1,18 @@
+[Unit]
+Description=Slack Alert Sender for Broadcastify Feed Status to Slack
+After=network.target
+StartLimitIntervalSec=0
+StartLimitBurst=5
+
+[Service]
+Environment=VIRTUAL_ENV=/usr/local/bin/pi-slack
+Environment=PATH=$VIRTUAL_ENV/bin:$PATH
+ExecStart=/usr/local/bin/python3 /usr/local/bin/pi-slack/alerts_slack.py
+Type=simple
+User=root
+Group=root
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

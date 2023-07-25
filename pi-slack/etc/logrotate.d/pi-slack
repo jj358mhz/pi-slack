@@ -1,0 +1,10 @@
+/var/pihole/logs/pi-slack/pi-slack*log {
+  rotate 7
+  daily
+  compress
+  missingok
+  notifempty
+  postrotate
+    systemctl try-restart pi-slack.service
+  endscript
+}
