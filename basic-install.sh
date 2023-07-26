@@ -24,7 +24,7 @@ else
   echo "Running script with super user privileges."
 fi
 
-SOFTWARE='pi-slack'
+SERVICE='pi-slack'
 GET_PIP_URL='https://bootstrap.pypa.io/get-pip.py'
 REPO_URL='https://github.com/jj358mhz/pi-slack.git'
 
@@ -39,10 +39,10 @@ function error() {
 trap 'error ${LINENO} $?' ERR
 
 # Stop and disable the service if it's already running
-if systemctl is-active --quiet "${SOFTWARE}.service"; then
-  printf "${TICK}" "Stopping and disabling ${SOFTWARE}.service..."
-  systemctl stop "${SOFTWARE}.service"
-  systemctl disable "${SOFTWARE}.service"
+if systemctl is-active --quiet "${SERVICE}.service"; then
+  printf "${TICK}" "Stopping and disabling ${SERVICE}.service..."
+  systemctl stop "${SERVICE}.service"
+  systemctl disable "${SERVICE}.service"
 fi
 
 # Create a temporary directory
@@ -58,12 +58,12 @@ make_venv() {
   apt-get update && apt-get install python3-venv -y || exit $?
 
   # Create the venv directory
-  mkdir -p "/opt/venvs/${SOFTWARE}"
+  mkdir -p "/opt/venvs/${SERVICE}"
 
   cd "$temp_dir" || exit $?
 
-  python3 -m venv "/opt/venvs/${SOFTWARE}" || exit $?
-  source "/opt/venvs/${SOFTWARE}/bin/activate" || exit $?
+  python3 -m venv "/opt/venvs/${SERVICE}" || exit $?
+  source "/opt/venvs/${SERVICE}/bin/activate" || exit $?
   wget -qO- "${GET_PIP_URL}" | python3 || exit $?
 
   # Install Python dependencies from requirements.txt
@@ -75,13 +75,13 @@ make_venv() {
 
 install_files() {
   # Create necessary directories
-  mkdir -p "/usr/local/bin/${SOFTWARE}/" "/etc/${SOFTWARE}/"
+  mkdir -p "/usr/local/bin/${SERVICE}/" "/etc/${SERVICE}/"
 
   # Remove unnecessary files, if any
   rm -rf "$temp_dir/.git*"
 
   # Check if the .ini file already exists
-  if [ -f "/etc/${SOFTWARE}/${SOFTWARE}.ini" ]; then
+  if [ -f "/etc/${SERVICE}/${SERVICE}.ini" ]; then
     read -r -p "An .ini file already exists. Do you want to overwrite it? (y/n) " response
     if [[ $response =~ ^[Yy]$ ]]; then
       echo "Overwriting existing .ini file..."
@@ -93,7 +93,7 @@ install_files() {
   fi
 
   # Prompt the user for their credentials if the .ini file does not exist
-  if [ ! -f "/etc/${SOFTWARE}/${SOFTWARE}.ini" ]; then
+  if [ ! -f "/etc/${SERVICE}/${SERVICE}.ini" ]; then
     echo "Please enter your feed credentials:"
     read -r -p "FEED_ID: " feed_id
     read -r -p "USERNAME: " username
@@ -118,19 +118,19 @@ EOF
 )
 
     # Write the generated .ini content to the actual .ini file
-    echo "$ini_content" | sudo tee "/etc/${SOFTWARE}/${SOFTWARE}.ini" >/dev/null
+    echo "$ini_content" | sudo tee "/etc/${SERVICE}/${SERVICE}.ini" >/dev/null
   fi
 
   # Copy files to their respective directories
-  cp "$temp_dir/${SOFTWARE}/usr/local/bin/${SOFTWARE}/alerts_slack.py" "/usr/local/bin/${SOFTWARE}/"
-  cp "$temp_dir/${SOFTWARE}/etc/logrotate.d/${SOFTWARE}" "/etc/logrotate.d"
-  cp "$temp_dir/${SOFTWARE}/etc/systemd/system/${SOFTWARE}.service" "/etc/systemd/system/"
+  cp "$temp_dir/${SERVICE}/alerts_slack.py" "/usr/local/bin/${SERVICE}/"
+  cp "$temp_dir/${SERVICE}/pi-slack" "/etc/logrotate.d/${SERVICE}"
+  cp "$temp_dir/${SERVICE}.service" "/etc/systemd/system/${SERVICE}.service"
 
   # Make alerts_slack.py executable
-  chmod +x "/usr/local/bin/${SOFTWARE}/alerts_slack.py"
+  chmod +x "/usr/local/bin/${SERVICE}/alerts_slack.py"
 
   # Ensure the copied files are owned by root
-  chown -R root:root "/usr/local/bin/${SOFTWARE}/" "/etc/${SOFTWARE}/" || exit $?
+  chown -R root:root "/usr/local/bin/${SERVICE}/" "/etc/${SERVICE}/" || exit $?
 
   # Remove the temporary directory
   rm -r "$temp_dir"
@@ -140,9 +140,9 @@ make_venv
 install_files
 
 # Enable the service
-systemctl enable "${SOFTWARE}.service"
+systemctl enable "${SERVICE}.service"
 
 echo " "
 echo " "
 echo "Service files installed and permissions set & please be sure to \
-update your /etc/${SOFTWARE}/${SOFTWARE}.ini file with your feed credentials"
+update your /etc/${SERVICE}/${SERVICE}.ini file with your feed credentials"
