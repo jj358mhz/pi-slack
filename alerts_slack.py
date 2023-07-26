@@ -46,12 +46,10 @@ FEED_ID = (config['CREDENTIALS']['FEED_ID'])
 USERNAME = (config['CREDENTIALS']['USERNAME'])
 PASSWORD = (config['CREDENTIALS']['PASSWORD'])
 WEBHOOK_URL = (config['ENDPOINT']['WEBHOOK_URL'])
+ALERT_THRESHOLD = (config['SETTINGS']['ALERT_THRESHOLD'])
+SLEEP_TIMER = int((config['SETTINGS']['SLEEP_TIMER']))
 
 # *************** DO NOT ALTER ABOVE ***************
-
-
-# This threshold amount is the number of listeners that need to be exceeded before Slack alerts are sent out
-ALERT_THRESHOLD = 30  # ENTER YOUR DESIRED ALERT LISTENER THRESHOLD HERE
 
 # Check whether the specified path exists
 os.makedirs(LOGFILE_PATH, exist_ok=True)
@@ -137,4 +135,15 @@ if __name__ == '__main__':
         level=logging.INFO,
         datefmt='%Y-%m-%d %H:%M:%S',
     )
-    main()
+
+    while True:
+        try:
+            main()
+            time.sleep(SLEEP_TIMER)
+        except KeyboardInterrupt:
+            logging.info('Terminating pi-slack.')
+            break
+        except Exception as e:
+            logging.error(f'An error occurred: {e}')
+            logging.info('Retrying in 5 seconds...')
+            time.sleep(5)
