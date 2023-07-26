@@ -84,12 +84,10 @@ install_files() {
   # Check if the .ini file already exists
   if [ -f "/etc/${SERVICE}/${SERVICE}.ini" ]; then
     echo "An .ini file already exists. Skipping .ini file copy."
-    rm -r "$temp_dir"  # Remove the temporary directory
-    exit 0
+  else
+    # Copy the template .ini file from GitHub
+    cp "$temp_dir/${SERVICE}.ini" "/etc/${SERVICE}/${SERVICE}.ini"
   fi
-
-  # Copy the template .ini file from GitHub
-  cp "$temp_dir/${SERVICE}.ini" "/etc/${SERVICE}/${SERVICE}.ini"
 
   # Copy other files to their respective directories
   cp "$temp_dir/alerts_slack.py" "/usr/local/bin/${SERVICE}/"
@@ -103,9 +101,10 @@ install_files() {
   chown -R root:root "/usr/local/bin/${SERVICE}/" "/etc/${SERVICE}/" || exit $?
 
   # Remove the temporary directory
-  # rm -r "$temp_dir"
+  rm -r "$temp_dir"
 }
 
+# Run the main functions
 make_venv
 install_files
 
