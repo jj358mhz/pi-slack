@@ -101,8 +101,8 @@ install_files() {
     echo
     read -r -p "WEBHOOK_URL: " webhook_url
 
-    # Generate the content of the .ini file with user credentials
-    ini_content=$(cat <<EOF
+    # Write the generated .ini content to the actual .ini file
+    cat > "/etc/${SERVICE}/${SERVICE}.ini" <<EOF
 [CREDENTIALS]
 # ENTER YOUR BROADCASTIFY FEED ID
 FEED_ID = ${feed_id}
@@ -115,10 +115,6 @@ PASSWORD = ${password}
 # ENTER YOUR SLACK WEBHOOK URL
 WEBHOOK_URL = ${webhook_url}
 EOF
-)
-
-    # Write the generated .ini content to the actual .ini file
-    echo "$ini_content" | tee "/etc/${SERVICE}/${SERVICE}.ini" >/dev/null
   fi
 
   # Copy files to their respective directories
