@@ -101,8 +101,8 @@ install_files() {
   echo
   read -r -p "WEBHOOK_URL: " webhook_url
 
-# Generate the content of the .ini file with user credentials
-ini_content=$(cat <<EOF
+  # Generate the content of the .ini file with user credentials
+  ini_content=$(cat <<EOF
 [CREDENTIALS]
 # ENTER YOUR BROADCASTIFY FEED ID
 FEED_ID = ${feed_id}
