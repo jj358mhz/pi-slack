@@ -75,7 +75,7 @@ make_venv() {
 
 install_files() {
   # Create necessary directories
-  #mkdir -p "/usr/local/bin/${SOFTWARE}/" "/etc/${SOFTWARE}/"
+  mkdir -p "/usr/local/bin/${SOFTWARE}/" "/etc/${SOFTWARE}/"
 
   # Remove unnecessary files, if any
   rm -rf "$temp_dir/.git*"
