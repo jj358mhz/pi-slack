@@ -6,6 +6,10 @@
 # instead of continuing the installation with something broken
 set -e
 
+# Append common folders to the PATH to ensure that all basic commands are available.
+# When using "su" an incomplete PATH could be passed: https://github.com/pi-hole/pi-hole/issues/3209
+export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
 # Set these values so the installer can still run in color
 COL_NC='\e[0m' # No Color
 COL_LIGHT_GREEN='\e[1;32m'
@@ -77,47 +81,17 @@ install_files() {
   # Create necessary directories
   mkdir -p "/usr/local/bin/${SERVICE}/" "/etc/${SERVICE}/"
 
-  # Remove unnecessary files, if any
-  rm -rf "$temp_dir/.git*"
-
   # Check if the .ini file already exists
   if [ -f "/etc/${SERVICE}/${SERVICE}.ini" ]; then
-    read -r -p "An .ini file already exists. Do you want to overwrite it? (y/n) " response
-    if [[ $response =~ ^[Yy]$ ]]; then
-      echo "Overwriting existing .ini file..."
-    else
-      echo "Skipping .ini file copy."
-      rm -r "$temp_dir"  # Remove the temporary directory
-      exit 0
-    fi
+    echo "An .ini file already exists. Skipping .ini file copy."
+    rm -r "$temp_dir"  # Remove the temporary directory
+    exit 0
   fi
 
-  # Prompt the user for their credentials if the .ini file does not exist
-  if [ ! -f "/etc/${SERVICE}/${SERVICE}.ini" ]; then
-    echo "Please enter your feed credentials:"
-    read -r -p "FEED_ID: " feed_id
-    read -r -p "USERNAME: " username
-    read -r -s -p "PASSWORD: " password
-    echo
-    read -r -p "WEBHOOK_URL: " webhook_url
+  # Copy the template .ini file from GitHub
+  cp "$temp_dir/${SERVICE}.ini" "/etc/${SERVICE}/${SERVICE}.ini"
 
-    # Generate the content of the .ini file with user credentials using cat with heredoc
-    sudo bash -c "cat > /etc/${SERVICE}/${SERVICE}.ini" << EOF
-[CREDENTIALS]
-# ENTER YOUR BROADCASTIFY FEED ID
-FEED_ID = ${feed_id}
-# ENTER YOUR BROADCASTIFY USERNAME
-USERNAME = ${username}
-# ENTER YOUR BROADCASTIFY PASSWORD
-PASSWORD = ${password}
-
-[ENDPOINT]
-# ENTER YOUR SLACK WEBHOOK URL
-WEBHOOK_URL = ${webhook_url}
-EOF
-  fi
-
-  # Copy files to their respective directories
+  # Copy other files to their respective directories
   cp "$temp_dir/alerts_slack.py" "/usr/local/bin/${SERVICE}/"
   cp "$temp_dir/${SERVICE}.logrotate" "/etc/logrotate.d/${SERVICE}"
   cp "$temp_dir/${SERVICE}.service" "/etc/systemd/system/${SERVICE}.service"
