@@ -16,12 +16,12 @@ CROSS="[${COL_LIGHT_RED}✗${COL_NC}]"
 # check if the script is running with super user privileges
 if [ "$EUID" -ne 0 ]; then
   # shellcheck disable=SC2059
-  printf "${CROSS}" "This script requires super user privileges. Re-executing script with sudo."
+  echo "This script requires super user privileges. Re-executing script with sudo."
   sudo "$0" "$@"  # re-execute script with super user privileges
   exit  # exit the current instance of the script
 else
   # shellcheck disable=SC2059
-  printf "${TICK}" "Running script with super user privileges."
+  echo "Running script with super user privileges."
 fi
 
 SOFTWARE='pi-slack'
@@ -75,32 +75,34 @@ make_venv() {
 
 install_files() {
   # Create necessary directories
-  mkdir -p "/usr/local/bin/${SOFTWARE}/" "/etc/${SOFTWARE}/"
+  #mkdir -p "/usr/local/bin/${SOFTWARE}/" "/etc/${SOFTWARE}/"
 
   # Remove unnecessary files, if any
   rm -rf "$temp_dir/.git*"
 
   # Check if the .ini file already exists
-if [ -f "/etc/${SOFTWARE}/${SOFTWARE}.ini" ]; then
-  read -r -p "An .ini file already exists. Do you want to overwrite it? (y/n) " response
-  if [[ $response =~ ^[Yy]$ ]]; then
-    echo "Overwriting existing .ini file..."
-  else
-    echo "Skipping .ini file copy."
-    rm -r "$temp_dir"  # Remove the temporary directory
-    exit 0
+  if [ -f "/etc/${SOFTWARE}/${SOFTWARE}.ini" ]; then
+    read -r -p "An .ini file already exists. Do you want to overwrite it? (y/n) " response
+    if [[ $response =~ ^[Yy]$ ]]; then
+      echo "Overwriting existing .ini file..."
+    else
+      echo "Skipping .ini file copy."
+      rm -r "$temp_dir"  # Remove the temporary directory
+      exit 0
+    fi
   fi
-else
-  # Prompt the user for their credentials if the .ini file does not exist
-  echo "Please enter your feed credentials:"
-  read -r -p "FEED_ID: " feed_id
-  read -r -p "USERNAME: " username
-  read -r -s -p "PASSWORD: " password
-  echo
-  read -r -p "WEBHOOK_URL: " webhook_url
 
-  # Generate the content of the .ini file with user credentials
-  ini_content=$(cat <<EOF
+  # Prompt the user for their credentials if the .ini file does not exist
+  if [ ! -f "/etc/${SOFTWARE}/${SOFTWARE}.ini" ]; then
+    echo "Please enter your feed credentials:"
+    read -r -p "FEED_ID: " feed_id
+    read -r -p "USERNAME: " username
+    read -r -s -p "PASSWORD: " password
+    echo
+    read -r -p "WEBHOOK_URL: " webhook_url
+
+    # Generate the content of the .ini file with user credentials
+    ini_content=$(cat <<EOF
 [CREDENTIALS]
 # ENTER YOUR BROADCASTIFY FEED ID
 FEED_ID = ${feed_id}
@@ -115,10 +117,9 @@ WEBHOOK_URL = ${webhook_url}
 EOF
 )
 
-  # Write the generated .ini content to the actual .ini file
-  echo "$ini_content" > "/etc/${SOFTWARE}/${SOFTWARE}.ini"
-fi
-
+    # Write the generated .ini content to the actual .ini file
+    echo "$ini_content" | sudo tee "/etc/${SOFTWARE}/${SOFTWARE}.ini" >/dev/null
+  fi
 
   # Copy files to their respective directories
   cp "$temp_dir/${SOFTWARE}/usr/local/bin/${SOFTWARE}/alerts_slack.py" "/usr/local/bin/${SOFTWARE}/"
