@@ -122,8 +122,8 @@ EOF
   fi
 
   # Copy files to their respective directories
-  cp "$temp_dir/${SERVICE}/alerts_slack.py" "/usr/local/bin/${SERVICE}/"
-  cp "$temp_dir/${SERVICE}/pi-slack" "/etc/logrotate.d/${SERVICE}"
+  cp "$temp_dir/alerts_slack.py" "/usr/local/bin/${SERVICE}/"
+  cp "$temp_dir/pi-slack" "/etc/logrotate.d/${SERVICE}"
   cp "$temp_dir/${SERVICE}.service" "/etc/systemd/system/${SERVICE}.service"
 
   # Make alerts_slack.py executable
