@@ -79,7 +79,8 @@ make_venv() {
 
 install_files() {
   # Create necessary directories
-  mkdir -p "/usr/local/bin/${SERVICE}/" "/etc/${SERVICE}/"
+  mkdir -p "/usr/local/bin/${SERVICE}/" "/etc/${SERVICE}/" "/var/${SERVICE}/logs/"
+  chmod 755 "/var/${SERVICE}/logs/"
 
   # Check if the .ini file already exists
   if [ -f "/etc/${SERVICE}/${SERVICE}.ini" ]; then
