@@ -6,10 +6,6 @@
 # instead of continuing the installation with something broken
 set -e
 
-# Append common folders to the PATH to ensure that all basic commands are available.
-# When using "su" an incomplete PATH could be passed: https://github.com/pi-hole/pi-hole/issues/3209
-export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-
 # Set these values so the installer can still run in color
 COL_NC='\e[0m' # No Color
 COL_LIGHT_GREEN='\e[1;32m'
@@ -56,9 +52,6 @@ echo "Temporary directory created: $temp_dir"
 # Clone the GitHub repository into the temporary directory
 git clone --depth=1 "${REPO_URL}" "$temp_dir"
 
-# Change to the temporary directory
-cd "$temp_dir" || exit $?
-
 make_venv() {
   # Build the python virtual environment
   python -c 'import venv' > /dev/null 2>&1 || \
@@ -67,16 +60,10 @@ make_venv() {
   # Create the venv directory
   mkdir -p "/opt/venvs/${SERVICE}"
 
-  # Create a Python virtual environment in the specified directory (/opt/venvs/${SERVICE})
-  # If the command fails, exit the script with the same exit code as the failed command
+  cd "$temp_dir" || exit $?
+
   python3 -m venv "/opt/venvs/${SERVICE}" || exit $?
-
-  # Activate the virtual environment
-  # If the command fails, exit the script with the same exit code as the failed command
   source "/opt/venvs/${SERVICE}/bin/activate" || exit $?
-
-  # Download the get-pip.py script and pipe it to python3 to install pip in the virtual environment
-  # If the command fails, exit the script with the same exit code as the failed command
   wget -qO- "${GET_PIP_URL}" | python3 || exit $?
 
   # Install Python dependencies from requirements.txt
@@ -114,8 +101,8 @@ install_files() {
     echo
     read -r -p "WEBHOOK_URL: " webhook_url
 
-  # Generate the content of the .ini file with user credentials using cat with heredoc
-  sudo bash -c "cat > /etc/${SERVICE}/${SERVICE}.ini" << EOF
+    # Generate the content of the .ini file with user credentials using cat with heredoc
+    sudo bash -c "cat > /etc/${SERVICE}/${SERVICE}.ini" << EOF
 [CREDENTIALS]
 # ENTER YOUR BROADCASTIFY FEED ID
 FEED_ID = ${feed_id}
@@ -128,8 +115,7 @@ PASSWORD = ${password}
 # ENTER YOUR SLACK WEBHOOK URL
 WEBHOOK_URL = ${webhook_url}
 EOF
-
-fi
+  fi
 
   # Copy files to their respective directories
   cp "$temp_dir/alerts_slack.py" "/usr/local/bin/${SERVICE}/"
