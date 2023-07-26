@@ -101,7 +101,7 @@ install_files() {
     else
       echo "Skipping .ini file copy."
       rm -r "$temp_dir"  # Remove the temporary directory
-      # No need to exit here, as we want to continue with the installation.
+      exit 0
     fi
   fi
 
@@ -114,8 +114,8 @@ install_files() {
     echo
     read -r -p "WEBHOOK_URL: " webhook_url
 
-    # Write the generated .ini content to the actual .ini file
-    cat > "/etc/${SERVICE}/${SERVICE}.ini" <<EOF
+    # Generate the content of the .ini file with user credentials
+  ini_content=$(cat <<EOF
 [CREDENTIALS]
 # ENTER YOUR BROADCASTIFY FEED ID
 FEED_ID = ${feed_id}
@@ -128,7 +128,10 @@ PASSWORD = ${password}
 # ENTER YOUR SLACK WEBHOOK URL
 WEBHOOK_URL = ${webhook_url}
 EOF
-  fi
+)
+  # Write the generated .ini content to the actual .ini file using sudo
+  echo "$ini_content" | sudo tee "/etc/${SERVICE}/${SERVICE}.ini" >/dev/null
+fi
 
   # Copy files to their respective directories
   cp "$temp_dir/alerts_slack.py" "/usr/local/bin/${SERVICE}/"
