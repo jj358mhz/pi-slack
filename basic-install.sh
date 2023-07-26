@@ -6,6 +6,10 @@
 # instead of continuing the installation with something broken
 set -e
 
+# Append common folders to the PATH to ensure that all basic commands are available.
+# When using "su" an incomplete PATH could be passed: https://github.com/pi-hole/pi-hole/issues/3209
+export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
 # Set these values so the installer can still run in color
 COL_NC='\e[0m' # No Color
 COL_LIGHT_GREEN='\e[1;32m'
