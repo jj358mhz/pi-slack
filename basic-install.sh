@@ -92,12 +92,6 @@ install_files() {
     fi
   fi
 
-  # Copy files to their respective directories
-  cp "$temp_dir/${SOFTWARE}/usr/local/bin/${SOFTWARE}/alerts_slack.py" "/usr/local/bin/${SOFTWARE}/"
-
-  # Make alerts_slack.py executable
-  chmod +x "/usr/local/bin/${SOFTWARE}/alerts_slack.py"
-
   # Prompt the user for their credentials
   echo "Please enter your feed credentials:"
   read -r -p "FEED_ID: " feed_id
@@ -125,9 +119,13 @@ EOF
   # Write the generated .ini content to the actual .ini file
   echo "$ini_content" > "/etc/${SOFTWARE}/${SOFTWARE}.ini"
 
-  # Copy the .ini file to its destination
+  # Copy files to their respective directories
+  cp "$temp_dir/${SOFTWARE}/usr/local/bin/${SOFTWARE}/alerts_slack.py" "/usr/local/bin/${SOFTWARE}/"
   cp "$temp_dir/${SOFTWARE}/etc/logrotate.d/${SOFTWARE}" "/etc/logrotate.d"
   cp "$temp_dir/${SOFTWARE}/etc/systemd/system/${SOFTWARE}.service" "/etc/systemd/system/"
+
+  # Make alerts_slack.py executable
+  chmod +x "/usr/local/bin/${SOFTWARE}/alerts_slack.py"
 
   # Ensure the copied files are owned by root
   chown -R root:root "/usr/local/bin/${SOFTWARE}/" "/etc/${SOFTWARE}/" || exit $?
@@ -136,12 +134,11 @@ EOF
   rm -r "$temp_dir"
 }
 
-
 make_venv
 install_files
 
 # Enable the service
-systemctl enable ${SOFTWARE}.service
+systemctl enable "${SOFTWARE}.service"
 
 echo " "
 echo " "
