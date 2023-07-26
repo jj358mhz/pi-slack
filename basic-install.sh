@@ -81,18 +81,17 @@ install_files() {
   rm -rf "$temp_dir/.git*"
 
   # Check if the .ini file already exists
-  if [ -f "/etc/${SOFTWARE}/${SOFTWARE}.ini" ]; then
-    read -r -p "An .ini file already exists. Do you want to overwrite it? (y/n) " response
-    if [[ $response =~ ^[Yy]$ ]]; then
-      echo "Overwriting existing .ini file..."
-    else
-      echo "Skipping .ini file copy."
-      rm -r "$temp_dir"  # Remove the temporary directory
-      exit 0
-    fi
+if [ -f "/etc/${SOFTWARE}/${SOFTWARE}.ini" ]; then
+  read -r -p "An .ini file already exists. Do you want to overwrite it? (y/n) " response
+  if [[ $response =~ ^[Yy]$ ]]; then
+    echo "Overwriting existing .ini file..."
+  else
+    echo "Skipping .ini file copy."
+    rm -r "$temp_dir"  # Remove the temporary directory
+    exit 0
   fi
-
-  # Prompt the user for their credentials
+else
+  # Prompt the user for their credentials if the .ini file does not exist
   echo "Please enter your feed credentials:"
   read -r -p "FEED_ID: " feed_id
   read -r -p "USERNAME: " username
@@ -118,6 +117,8 @@ EOF
 
   # Write the generated .ini content to the actual .ini file
   echo "$ini_content" > "/etc/${SOFTWARE}/${SOFTWARE}.ini"
+fi
+
 
   # Copy files to their respective directories
   cp "$temp_dir/${SOFTWARE}/usr/local/bin/${SOFTWARE}/alerts_slack.py" "/usr/local/bin/${SOFTWARE}/"
