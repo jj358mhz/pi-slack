@@ -73,15 +73,7 @@ install_files() {
   # Remove unnecessary files, if any
   rm -rf "$temp_dir/.git*"
 
-  # Copy files to their respective directories
-  cp "$temp_dir/${SOFTWARE}/usr/local/bin/${SOFTWARE}/alerts_slack.py" "/usr/local/bin/${SOFTWARE}/"
-  cp "$temp_dir/${SOFTWARE}/etc/logrotate.d/$SOFTWARE" "/etc/logrotate.d"
-  cp "$temp_dir/${SOFTWARE}/etc/systemd/system/${SOFTWARE}.service" "/etc/systemd/system/"
-
-  # Make alerts_slack.py executable
-  chmod +x "/usr/local/bin/${SOFTWARE}/alerts_slack.py"
-
-    # Check if the .ini file already exists
+  # Check if the .ini file already exists
   if [ -f "/etc/${SOFTWARE}/${SOFTWARE}.ini" ]; then
     read -r -p "An .ini file already exists. Do you want to overwrite it? (y/n) " response
     if [[ $response =~ ^[Yy]$ ]]; then
@@ -92,6 +84,12 @@ install_files() {
       exit 0
     fi
   fi
+
+  # Copy files to their respective directories
+  cp "$temp_dir/${SOFTWARE}/usr/local/bin/${SOFTWARE}/alerts_slack.py" "/usr/local/bin/${SOFTWARE}/"
+
+  # Make alerts_slack.py executable
+  chmod +x "/usr/local/bin/${SOFTWARE}/alerts_slack.py"
 
   # Prompt the user for their credentials
   echo "Please enter your feed credentials:"
@@ -122,6 +120,7 @@ EOF
 
   # Copy the .ini file to its destination
   cp "$temp_dir/${SOFTWARE}/etc/logrotate.d/${SOFTWARE}" "/etc/logrotate.d"
+  cp "$temp_dir/${SOFTWARE}/etc/systemd/system/${SOFTWARE}.service" "/etc/systemd/system/"
 
   # Ensure the copied files are owned by root
   chown -R root:root "/usr/local/bin/${SOFTWARE}/" "/etc/${SOFTWARE}/" || exit $?
@@ -129,6 +128,7 @@ EOF
   # Remove the temporary directory
   rm -r "$temp_dir"
 }
+
 
 make_venv
 install_files
