@@ -133,7 +133,7 @@ EOF
   chown -R root:root "/usr/local/bin/${SERVICE}/" "/etc/${SERVICE}/" || exit $?
 
   # Remove the temporary directory
-  rm -r "$temp_dir"
+  # rm -r "$temp_dir"
 }
 
 make_venv
