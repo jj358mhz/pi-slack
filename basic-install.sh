@@ -38,6 +38,13 @@ function error() {
 # trap errors
 trap 'error ${LINENO} $?' ERR
 
+# Stop and disable the service if it's already running
+if systemctl is-active --quiet "${SOFTWARE}.service"; then
+  printf "${TICK}" "Stopping and disabling ${SOFTWARE}.service..."
+  systemctl stop "${SOFTWARE}.service"
+  systemctl disable "${SOFTWARE}.service"
+fi
+
 # Create a temporary directory
 temp_dir=$(mktemp -d)
 echo "Temporary directory created: $temp_dir"
