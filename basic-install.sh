@@ -56,6 +56,9 @@ echo "Temporary directory created: $temp_dir"
 # Clone the GitHub repository into the temporary directory
 git clone --depth=1 "${REPO_URL}" "$temp_dir"
 
+# Change to the temporary directory
+cd "$temp_dir" || exit $?
+
 make_venv() {
   # Build the python virtual environment
   python -c 'import venv' > /dev/null 2>&1 || \
@@ -64,10 +67,16 @@ make_venv() {
   # Create the venv directory
   mkdir -p "/opt/venvs/${SERVICE}"
 
-  cd "$temp_dir" || exit $?
-
+  # Create a Python virtual environment in the specified directory (/opt/venvs/${SERVICE})
+  # If the command fails, exit the script with the same exit code as the failed command
   python3 -m venv "/opt/venvs/${SERVICE}" || exit $?
+
+  # Activate the virtual environment
+  # If the command fails, exit the script with the same exit code as the failed command
   source "/opt/venvs/${SERVICE}/bin/activate" || exit $?
+
+  # Download the get-pip.py script and pipe it to python3 to install pip in the virtual environment
+  # If the command fails, exit the script with the same exit code as the failed command
   wget -qO- "${GET_PIP_URL}" | python3 || exit $?
 
   # Install Python dependencies from requirements.txt
