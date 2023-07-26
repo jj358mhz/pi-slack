@@ -88,7 +88,7 @@ install_files() {
     else
       echo "Skipping .ini file copy."
       rm -r "$temp_dir"  # Remove the temporary directory
-      exit 0
+      # No need to exit here, as we want to continue with the installation.
     fi
   fi
 
@@ -118,7 +118,7 @@ EOF
 )
 
     # Write the generated .ini content to the actual .ini file
-    echo "$ini_content" | sudo tee "/etc/${SERVICE}/${SERVICE}.ini" >/dev/null
+    echo "$ini_content" | tee "/etc/${SERVICE}/${SERVICE}.ini" >/dev/null
   fi
 
   # Copy files to their respective directories
